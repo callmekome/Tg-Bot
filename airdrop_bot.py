@@ -7,7 +7,7 @@ from datetime import datetime
 
 # ================= BRAND SETTINGS =================
 
-BOT_NAME = "USDT NEW UPDATE"
+BOT_NAME = "Testing13333bot"
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
