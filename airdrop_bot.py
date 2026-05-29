@@ -5,23 +5,27 @@ import logging
 import time
 from datetime import datetime
 
-# ================= CONFIG =================
+# ================= BRAND SETTINGS =================
+
+BOT_NAME = "USDT NEW UPDATE"
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
+BOT_USERNAME = "USDT_NEW_UPDATE_BOT"
+
 REQUIRED_CHANNELS = [
-    "@Testing13333bot",
-    "https://t.me/usdtupdate144"
-    "@Testing13333bot"
+    "@usdtupdate144"
 ]
 
-JOINING_BONUS = 10.0
-REFERRAL_BONUS = 10.0
-MIN_WITHDRAWAL = 25.0
+GROUP_LINK = "https://t.me/+i3NfN9INNuplMTI0"
 
-BOT_USERNAME = "USDT UPDATE"
+JOINING_BONUS = 15.0
+REFERRAL_BONUS = 5.0
+MIN_WITHDRAWAL = 50.0
 
 BASE = f"https://api.telegram.org/bot{BOT_TOKEN}"
+
+# ================= LOGGING =================
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -30,7 +34,7 @@ logging.basicConfig(
 
 log = logging.getLogger(__name__)
 
-# ================= TELEGRAM API =================
+# ================= API =================
 
 def api(method, **p):
     try:
@@ -40,6 +44,7 @@ def api(method, **p):
             timeout=20
         )
         return r.json()
+
     except Exception as e:
         log.error(str(e))
         return {}
@@ -74,8 +79,9 @@ def edit(cid, mid, text, rm=None):
 def main_kb():
     return {
         "keyboard": [
-            [{"text": "💰 Balance"}, {"text": "👥 Referral"}],
-            [{"text": "📤 Withdraw"}]
+            [{"text": "💳 Wallet"}, {"text": "👨‍👩‍👧 Referrals"}],
+            [{"text": "💸 Withdraw"}],
+            [{"text": "📢 Updates"}, {"text": "👥 Community"}]
         ],
         "resize_keyboard": True
     }
@@ -86,40 +92,19 @@ def join_kb():
     for c in REQUIRED_CHANNELS:
         buttons.append([
             {
-                "text": "➕ Join " + c,
+                "text": "🚀 Join Channel",
                 "url": "https://t.me/" + c.lstrip("@")
             }
         ])
 
     buttons.append([
         {
-            "text": "✅ I've Joined — Continue",
+            "text": "✅ I've Joined",
             "callback_data": "check_join"
         }
     ])
 
     return {"inline_keyboard": buttons}
-
-# ================= MEMBERSHIP CHECK =================
-
-def check_mem(uid):
-    out = []
-
-    for c in REQUIRED_CHANNELS:
-        try:
-            s = api(
-                "getChatMember",
-                chat_id=c,
-                user_id=uid
-            ).get("result", {}).get("status", "left")
-
-            if s in ("left", "kicked", "banned"):
-                out.append(c)
-
-        except:
-            out.append(c)
-
-    return out
 
 # ================= DATABASE =================
 
@@ -165,12 +150,14 @@ def init():
 
 def getu(uid):
     c = db()
+
     r = c.execute(
         "SELECT * FROM users WHERE user_id=?",
         (uid,)
     ).fetchone()
 
     c.close()
+
     return r
 
 def mkuser(uid, un, fn, ref=None):
@@ -220,17 +207,6 @@ def markb(uid):
     c.commit()
     c.close()
 
-def setwallet(uid, w):
-    c = db()
-
-    c.execute(
-        "UPDATE users SET wallet=? WHERE user_id=?",
-        (w, uid)
-    )
-
-    c.commit()
-    c.close()
-
 def refcount(uid):
     c = db()
 
@@ -242,6 +218,17 @@ def refcount(uid):
     c.close()
 
     return r["n"] if r else 0
+
+def setwallet(uid, w):
+    c = db()
+
+    c.execute(
+        "UPDATE users SET wallet=? WHERE user_id=?",
+        (w, uid)
+    )
+
+    c.commit()
+    c.close()
 
 def savewith(uid, amt, w):
     c = db()
@@ -310,31 +297,61 @@ def clrst(uid):
     c.commit()
     c.close()
 
+# ================= MEMBERSHIP =================
+
+def check_mem(uid):
+    out = []
+
+    for c in REQUIRED_CHANNELS:
+        try:
+            s = api(
+                "getChatMember",
+                chat_id=c,
+                user_id=uid
+            ).get("result", {}).get("status", "left")
+
+            if s in ("left", "kicked", "banned"):
+                out.append(c)
+
+        except:
+            out.append(c)
+
+    return out
+
 pref = {}
 
-# ================= BOT FUNCTIONS =================
+# ================= START =================
 
 def do_start(cid, uid, fn, un, arg):
+
+    welcome = (
+        "🚀 *WELCOME TO USDT NEW UPDATE* 🚀\n\n"
+        "💎 Premium Crypto Reward Community\n"
+        "🔥 Earn USDT Daily\n"
+        "👥 Invite Friends & Earn More\n"
+        "⚡ Instant Reward System\n"
+        "🔒 Trusted Community Platform\n\n"
+        f"🎁 Welcome Bonus: *{JOINING_BONUS} USDT*\n"
+        f"👥 Referral Bonus: *{REFERRAL_BONUS} USDT*\n"
+        f"💸 Minimum Withdrawal: *{MIN_WITHDRAWAL} USDT*\n\n"
+        "📢 Join our official updates channel below."
+    )
+
     nj = check_mem(uid)
 
     if nj:
         if arg:
             pref[uid] = arg
 
-        send(
-            cid,
-            "👋 *USDT Airdrop Bot*\n\n"
-            "⚠️ Join first:\n\n" +
-            "".join("• " + c + "\n" for c in nj) +
-            "\nThen tap *I've Joined*.",
-            join_kb()
-        )
-
+        send(cid, welcome, join_kb())
         return
 
     do_reg(cid, uid, fn, un, arg)
 
+# ================= REGISTER =================
+
 def do_reg(cid, uid, fn, un, arg=None):
+
     ref = None
 
     ra = arg or pref.pop(uid, None)
@@ -354,7 +371,9 @@ def do_reg(cid, uid, fn, un, arg=None):
     u = getu(uid)
 
     if u and not u["joined_bonus"]:
+
         addb(uid, JOINING_BONUS)
+
         markb(uid)
 
         if ref:
@@ -365,47 +384,42 @@ def do_reg(cid, uid, fn, un, arg=None):
 
                 send(
                     ref,
-                    f"🎉 *Referral Bonus!*\n\n"
-                    f"*{fn}* joined!\n"
-                    f"You earned *{REFERRAL_BONUS} USDT*! 🚀"
+                    f"🎉 New referral joined!\n\n"
+                    f"💰 You earned {REFERRAL_BONUS} USDT"
                 )
 
     send(
         cid,
-        f"🎉 *USDT Airdrop Bot*\n\n"
-        f"Welcome, *{fn}*!\n\n"
-        f"🎁 Joining: {JOINING_BONUS} USDT\n"
-        f"👥 Per Refer: {REFERRAL_BONUS} USDT\n"
-        f"💸 Min Withdraw: {MIN_WITHDRAWAL} USDT",
+        f"🎉 *Account Activated Successfully*\n\n"
+        f"👤 User: *{fn}*\n"
+        f"💰 Bonus Added: *{JOINING_BONUS} USDT*\n\n"
+        f"Use the menu below to continue.",
         main_kb()
     )
 
-def do_bal(cid, uid, fn):
-    nj = check_mem(uid)
+# ================= WALLET =================
 
-    if nj:
-        send(cid, "⚠️ Join channels first.", join_kb())
-        return
+def do_bal(cid, uid, fn):
 
     u = getu(uid)
 
     if not u:
-        send(cid, "Send /start first.")
+        send(cid, "⚠️ Please send /start first.")
         return
 
     send(
         cid,
-        f"👑 *User:* {fn}\n\n"
-        f"💰 *Balance:* {round(u['balance'], 2)} USDT",
+        f"💳 *YOUR WALLET DASHBOARD*\n\n"
+        f"👤 User: *{fn}*\n"
+        f"💰 Balance: *{round(u['balance'],2)} USDT*\n"
+        f"👥 Referrals: *{refcount(uid)}*\n\n"
+        f"🚀 Keep inviting friends to increase earnings.",
         main_kb()
     )
 
-def do_ref(cid, uid):
-    nj = check_mem(uid)
+# ================= REFERRALS =================
 
-    if nj:
-        send(cid, "⚠️ Join channels first.", join_kb())
-        return
+def do_ref(cid, uid):
 
     n = refcount(uid)
 
@@ -413,35 +427,33 @@ def do_ref(cid, uid):
 
     send(
         cid,
-        f"🔥 *Airdrop Live!*\n\n"
-        f"🎁 Join Bonus: {JOINING_BONUS} USDT\n"
-        f"👥 Per Refer: {REFERRAL_BONUS} USDT\n\n"
-        f"🔗 *Your Link:*\n`{link}`\n\n"
-        f"📊 Referrals: {n}\n"
-        f"💵 Earned: {round(n * REFERRAL_BONUS, 2)} USDT",
+        f"👨‍👩‍👧 *REFERRAL CENTER*\n\n"
+        f"🔗 Your Referral Link:\n`{link}`\n\n"
+        f"👥 Total Referrals: *{n}*\n"
+        f"💰 Total Earned: *{round(n * REFERRAL_BONUS,2)} USDT*\n\n"
+        f"🚀 Share your link and earn unlimited rewards.",
         main_kb()
     )
 
-def do_with(cid, uid):
-    nj = check_mem(uid)
+# ================= WITHDRAW =================
 
-    if nj:
-        send(cid, "⚠️ Join channels first.", join_kb())
-        return
+def do_with(cid, uid):
 
     u = getu(uid)
 
     if not u:
-        send(cid, "Send /start first.")
+        send(cid, "⚠️ Please send /start first.")
         return
 
     b = u["balance"]
 
     if b < MIN_WITHDRAWAL:
+
         send(
             cid,
-            f"⚠️ Min withdrawal: {MIN_WITHDRAWAL} USDT\n"
-            f"Your balance: {round(b, 2)} USDT",
+            f"⚠️ Withdrawal unavailable.\n\n"
+            f"💰 Current Balance: *{round(b,2)} USDT*\n"
+            f"💸 Minimum Required: *{MIN_WITHDRAWAL} USDT*",
             main_kb()
         )
 
@@ -451,14 +463,15 @@ def do_with(cid, uid):
 
     send(
         cid,
-        f"📤 *Withdraw*\n\n"
-        f"Balance: *{round(b, 2)} USDT*\n\n"
-        f"Send your TRC20 wallet address:"
+        f"💸 *WITHDRAWAL REQUEST*\n\n"
+        f"💰 Amount: *{round(b,2)} USDT*\n\n"
+        f"📩 Send your TRC20 wallet address."
     )
 
 def do_wallet(cid, uid, w):
+
     if len(w) < 20:
-        send(cid, "❌ Invalid address. Try again.")
+        send(cid, "❌ Invalid wallet address.")
         return
 
     u = getu(uid)
@@ -473,18 +486,19 @@ def do_wallet(cid, uid, w):
 
     send(
         cid,
-        f"✅ *Submitted!*\n\n"
-        f"💰 Amount: *{round(amt, 2)} USDT*\n"
-        f"📬 Wallet: `{w}`\n\n"
-        f"⏳ Processing in 24-48hrs.",
+        f"✅ *Withdrawal Submitted Successfully*\n\n"
+        f"💰 Amount: *{round(amt,2)} USDT*\n"
+        f"📬 Wallet Saved Successfully\n\n"
+        f"⏳ Processing Time: 24-48 Hours",
         main_kb()
     )
 
-# ================= MAIN LOOP =================
+# ================= MAIN =================
 
 def main():
+
     if not BOT_TOKEN:
-        print("BOT_TOKEN environment variable missing")
+        print("BOT_TOKEN missing")
         return
 
     init()
@@ -494,7 +508,9 @@ def main():
     offset = None
 
     while True:
+
         try:
+
             res = api(
                 "getUpdates",
                 timeout=30,
@@ -503,10 +519,13 @@ def main():
             )
 
             for u in res.get("result", []):
+
                 offset = u["update_id"] + 1
 
-                # CALLBACKS
+                # CALLBACK
+
                 if "callback_query" in u:
+
                     cq = u["callback_query"]
 
                     uid = cq["from"]["id"]
@@ -528,25 +547,32 @@ def main():
                     )
 
                     if cq.get("data") == "check_join":
+
                         nj = check_mem(uid)
 
                         if nj:
+
                             edit(
                                 cid,
                                 mid,
-                                "❌ Still not joined:\n\n" +
-                                "".join("• " + c + "\n" for c in nj) +
-                                "\nTry again.",
+                                "❌ You must join the channel first.",
                                 join_kb()
                             )
 
                         else:
-                            edit(cid, mid, "✅ Verified! Setting up...")
+
+                            edit(
+                                cid,
+                                mid,
+                                "✅ Verification successful..."
+                            )
+
                             do_reg(cid, uid, fn, un)
 
                     continue
 
                 # MESSAGES
+
                 if "message" not in u:
                     continue
 
@@ -571,10 +597,13 @@ def main():
                 st = getst(uid)
 
                 if st == "wallet" and not txt.startswith("/"):
+
                     do_wallet(cid, uid, txt)
+
                     continue
 
                 if txt.startswith("/start"):
+
                     p = txt.split()
 
                     do_start(
@@ -585,20 +614,40 @@ def main():
                         p[1] if len(p) > 1 else None
                     )
 
-                elif txt == "💰 Balance":
+                elif txt == "💳 Wallet":
+
                     do_bal(cid, uid, fn)
 
-                elif txt == "👥 Referral":
+                elif txt == "👨‍👩‍👧 Referrals":
+
                     do_ref(cid, uid)
 
-                elif txt == "📤 Withdraw":
+                elif txt == "💸 Withdraw":
+
                     do_with(cid, uid)
 
+                elif txt == "📢 Updates":
+
+                    send(
+                        cid,
+                        "📢 Official Updates Channel:\nhttps://t.me/usdtupdate144"
+                    )
+
+                elif txt == "👥 Community":
+
+                    send(
+                        cid,
+                        f"👥 Official Community Group:\n{GROUP_LINK}"
+                    )
+
         except KeyboardInterrupt:
+
             break
 
         except Exception as e:
+
             log.error(str(e))
+
             time.sleep(3)
 
 if __name__ == "__main__":
