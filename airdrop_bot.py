@@ -18,7 +18,7 @@ BOT_USERNAME = "Testing13333bot"
 REQUIRED_CHANNELS = [
     "@usdtupdate144",
     "@discussionnewupdate",
-    "@humupd"
+    "@AYOBOLAJI1"
 ]
 
 GROUP_LINK = "https://t.me/discussionnewupdate"
