@@ -5,27 +5,27 @@ import logging
 import time
 from datetime import datetime
 
-# ================= BRAND SETTINGS =================
+# ================= SETTINGS =================
 
-BOT_NAME = "Testing13333bot"
+BOT_NAME = "USDT NEW UPDATE"
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-# CHANGE THIS TO YOUR REAL BOT USERNAME
 BOT_USERNAME = "Testing13333bot"
 
-# REQUIRED CHANNELS/GROUPS
+ADMIN_ID = 8862894177
+
 REQUIRED_CHANNELS = [
     "@usdtupdate144",
     "@discussionnewupdate",
+    "@humupd",
     "@AYOBOLAJI1"
 ]
 
 GROUP_LINK = "https://t.me/discussionnewupdate"
 
-# REWARD SETTINGS
-JOINING_BONUS = 15.0
-REFERRAL_BONUS = 5.0
+JOINING_BONUS = 10.0
+REFERRAL_BONUS = 10.0
 MIN_WITHDRAWAL = 40.0
 
 BASE = f"https://api.telegram.org/bot{BOT_TOKEN}"
@@ -42,16 +42,21 @@ log = logging.getLogger(__name__)
 # ================= API =================
 
 def api(method, **p):
+
     try:
+
         r = requests.post(
             BASE + "/" + method,
             json=p,
             timeout=20
         )
+
         return r.json()
 
     except Exception as e:
+
         log.error(str(e))
+
         return {}
 
 def send(cid, text, rm=None):
@@ -87,9 +92,9 @@ def main_kb():
 
     return {
         "keyboard": [
-            [{"text": "💳 Wallet"}, {"text": "👨‍👩‍👧 Referrals"}],
-            [{"text": "💸 Withdraw"}],
-            [{"text": "📢 Updates"}, {"text": "👥 Community"}]
+            [{"text": "💳 Balance"}, {"text": "👥 Referral"}],
+            [{"text": "📤 Withdraw"}],
+            [{"text": "📢 Updates"}, {"text": "👨‍👩‍👧 Community"}]
         ],
         "resize_keyboard": True
     }
@@ -123,6 +128,7 @@ DB = "airdrop.db"
 def db():
 
     c = sqlite3.connect(DB)
+
     c.row_factory = sqlite3.Row
 
     return c
@@ -159,6 +165,7 @@ def init():
     """)
 
     c.commit()
+
     c.close()
 
 def getu(uid):
@@ -198,6 +205,7 @@ def mkuser(uid, un, fn, ref=None):
     )
 
     c.commit()
+
     c.close()
 
 def addb(uid, amt):
@@ -210,6 +218,20 @@ def addb(uid, amt):
     )
 
     c.commit()
+
+    c.close()
+
+def removeb(uid, amt):
+
+    c = db()
+
+    c.execute(
+        "UPDATE users SET balance=balance-? WHERE user_id=?",
+        (amt, uid)
+    )
+
+    c.commit()
+
     c.close()
 
 def markb(uid):
@@ -222,6 +244,7 @@ def markb(uid):
     )
 
     c.commit()
+
     c.close()
 
 def refcount(uid):
@@ -247,6 +270,7 @@ def setwallet(uid, w):
     )
 
     c.commit()
+
     c.close()
 
 def savewith(uid, amt, w):
@@ -276,6 +300,7 @@ def savewith(uid, amt, w):
     )
 
     c.commit()
+
     c.close()
 
 def setst(uid, s):
@@ -293,6 +318,7 @@ def setst(uid, s):
     )
 
     c.commit()
+
     c.close()
 
 def getst(uid):
@@ -318,6 +344,7 @@ def clrst(uid):
     )
 
     c.commit()
+
     c.close()
 
 # ================= MEMBERSHIP =================
@@ -352,15 +379,15 @@ def do_start(cid, uid, fn, un, arg):
 
     welcome = (
         "🚀 *WELCOME TO USDT NEW UPDATE* 🚀\n\n"
-        "💎 Premium Crypto Reward Platform\n"
-        "🔥 Earn USDT Daily\n"
-        "👥 Invite Friends & Increase Earnings\n"
-        "⚡ Fast Reward System\n"
-        "🔒 Trusted Community\n\n"
+        "💎 Premium USDT Reward Bot\n"
+        "🔥 Earn Free USDT Daily\n"
+        "👥 Invite Friends & Earn More\n"
+        "⚡ Instant Reward System\n"
+        "🔒 Trusted Crypto Community\n\n"
         f"🎁 Welcome Bonus: *{JOINING_BONUS} USDT*\n"
         f"👥 Referral Reward: *{REFERRAL_BONUS} USDT*\n"
         f"💸 Minimum Withdrawal: *{MIN_WITHDRAWAL} USDT*\n\n"
-        "📢 Join all required channels below to continue."
+        "📢 Join all required channels below."
     )
 
     nj = check_mem(uid)
@@ -370,7 +397,11 @@ def do_start(cid, uid, fn, un, arg):
         if arg:
             pref[uid] = arg
 
-        send(cid, welcome, join_kb())
+        send(
+            cid,
+            welcome,
+            join_kb()
+        )
 
         return
 
@@ -379,6 +410,11 @@ def do_start(cid, uid, fn, un, arg):
 # ================= REGISTER =================
 
 def do_reg(cid, uid, fn, un, arg=None):
+
+    old_user = getu(uid)
+
+    if old_user:
+        return
 
     ref = None
 
@@ -398,60 +434,52 @@ def do_reg(cid, uid, fn, un, arg=None):
 
     mkuser(uid, un, fn, ref)
 
-    u = getu(uid)
+    addb(uid, JOINING_BONUS)
 
-    if u and not u["joined_bonus"]:
+    markb(uid)
 
-        addb(uid, JOINING_BONUS)
+    if ref:
 
-        markb(uid)
+        ru = getu(ref)
 
-        if ref:
+        if ru:
 
-            ru = getu(ref)
+            addb(ref, REFERRAL_BONUS)
 
-            if ru:
-
-                addb(ref, REFERRAL_BONUS)
-
-                send(
-                    ref,
-                    f"🎉 New referral joined!\n\n"
-                    f"💰 You earned {REFERRAL_BONUS} USDT"
-                )
+            send(
+                ref,
+                f"🎉 *New Referral Joined*\n\n"
+                f"👤 {fn} joined using your link.\n"
+                f"💰 Bonus Earned: *{REFERRAL_BONUS} USDT*"
+            )
 
     send(
         cid,
-        f"🎉 *Account Activated Successfully*\n\n"
-        f"👤 User: *{fn}*\n"
-        f"💰 Bonus Added: *{JOINING_BONUS} USDT*\n\n"
+        f"✅ *Account Activated Successfully*\n\n"
+        f"🎁 Bonus Added: *{JOINING_BONUS} USDT*\n\n"
         f"Use the menu below to continue.",
         main_kb()
     )
 
-# ================= WALLET =================
+# ================= BALANCE =================
 
 def do_bal(cid, uid, fn):
 
     u = getu(uid)
 
     if not u:
-
-        send(cid, "⚠️ Please send /start first.")
-
         return
 
     send(
         cid,
-        f"💳 *YOUR WALLET DASHBOARD*\n\n"
+        f"💳 *ACCOUNT BALANCE*\n\n"
         f"👤 User: *{fn}*\n"
         f"💰 Balance: *{round(u['balance'],2)} USDT*\n"
-        f"👥 Referrals: *{refcount(uid)}*\n\n"
-        f"🚀 Keep inviting friends to increase earnings.",
+        f"👥 Referrals: *{refcount(uid)}*",
         main_kb()
     )
 
-# ================= REFERRALS =================
+# ================= REFERRAL =================
 
 def do_ref(cid, uid):
 
@@ -461,11 +489,10 @@ def do_ref(cid, uid):
 
     send(
         cid,
-        f"👨‍👩‍👧 *REFERRAL CENTER*\n\n"
+        f"👥 *REFERRAL PROGRAM*\n\n"
         f"🔗 Your Referral Link:\n`{link}`\n\n"
-        f"👥 Total Referrals: *{n}*\n"
-        f"💰 Total Earned: *{round(n * REFERRAL_BONUS,2)} USDT*\n\n"
-        f"🚀 Share your link and earn unlimited rewards.",
+        f"👨‍👩‍👧 Total Referrals: *{n}*\n"
+        f"💰 Total Earned: *{round(n * REFERRAL_BONUS,2)} USDT*",
         main_kb()
     )
 
@@ -476,9 +503,6 @@ def do_with(cid, uid):
     u = getu(uid)
 
     if not u:
-
-        send(cid, "⚠️ Please send /start first.")
-
         return
 
     b = u["balance"]
@@ -487,9 +511,8 @@ def do_with(cid, uid):
 
         send(
             cid,
-            f"⚠️ Withdrawal unavailable.\n\n"
-            f"💰 Current Balance: *{round(b,2)} USDT*\n"
-            f"💸 Minimum Required: *{MIN_WITHDRAWAL} USDT*",
+            f"❌ Minimum withdrawal is *{MIN_WITHDRAWAL} USDT*\n\n"
+            f"💰 Your Balance: *{round(b,2)} USDT*",
             main_kb()
         )
 
@@ -499,9 +522,9 @@ def do_with(cid, uid):
 
     send(
         cid,
-        f"💸 *WITHDRAWAL REQUEST*\n\n"
+        f"📤 *Withdrawal Request*\n\n"
         f"💰 Amount: *{round(b,2)} USDT*\n\n"
-        f"📩 Send your TRC20 wallet address."
+        f"Send your wallet address."
     )
 
 def do_wallet(cid, uid, w):
@@ -523,11 +546,18 @@ def do_wallet(cid, uid, w):
     clrst(uid)
 
     send(
+        ADMIN_ID,
+        f"🚨 *New Withdrawal Request*\n\n"
+        f"👤 User ID: `{uid}`\n"
+        f"💰 Amount: *{amt} USDT*\n"
+        f"💳 Wallet:\n`{w}`"
+    )
+
+    send(
         cid,
         f"✅ *Withdrawal Submitted Successfully*\n\n"
         f"💰 Amount: *{round(amt,2)} USDT*\n"
-        f"📬 Wallet Saved Successfully\n\n"
-        f"⏳ Processing Time: 24-48 Hours",
+        f"⏳ Processing Time: 24 Hours",
         main_kb()
     )
 
@@ -561,8 +591,6 @@ def main():
             for u in res.get("result", []):
 
                 offset = u["update_id"] + 1
-
-                # CALLBACK
 
                 if "callback_query" in u:
 
@@ -611,8 +639,6 @@ def main():
 
                     continue
 
-                # MESSAGES
-
                 if "message" not in u:
                     continue
 
@@ -654,15 +680,15 @@ def main():
                         p[1] if len(p) > 1 else None
                     )
 
-                elif txt == "💳 Wallet":
+                elif txt == "💳 Balance":
 
                     do_bal(cid, uid, fn)
 
-                elif txt == "👨‍👩‍👧 Referrals":
+                elif txt == "👥 Referral":
 
                     do_ref(cid, uid)
 
-                elif txt == "💸 Withdraw":
+                elif txt == "📤 Withdraw":
 
                     do_with(cid, uid)
 
@@ -670,15 +696,74 @@ def main():
 
                     send(
                         cid,
-                        "📢 Official Updates Channel:\nhttps://t.me/usdtupdate144"
+                        "📢 Official Updates:\nhttps://t.me/usdtupdate144"
                     )
 
-                elif txt == "👥 Community":
+                elif txt == "👨‍👩‍👧 Community":
 
                     send(
                         cid,
-                        "👥 Official Community Group:\nhttps://t.me/discussionnewupdate"
+                        "👥 Official Community:\nhttps://t.me/discussionnewupdate"
                     )
+
+                elif txt.startswith("/addbalance"):
+
+                    if uid != ADMIN_ID:
+                        continue
+
+                    try:
+
+                        p = txt.split()
+
+                        target = int(p[1])
+
+                        amount = float(p[2])
+
+                        addb(target, amount)
+
+                        send(
+                            cid,
+                            f"✅ Added {amount} USDT to {target}"
+                        )
+
+                        send(
+                            target,
+                            f"🎉 Admin added {amount} USDT to your balance."
+                        )
+
+                    except:
+
+                        send(
+                            cid,
+                            "Usage:\n/addbalance userid amount"
+                        )
+
+                elif txt.startswith("/removebalance"):
+
+                    if uid != ADMIN_ID:
+                        continue
+
+                    try:
+
+                        p = txt.split()
+
+                        target = int(p[1])
+
+                        amount = float(p[2])
+
+                        removeb(target, amount)
+
+                        send(
+                            cid,
+                            f"✅ Removed {amount} USDT from {target}"
+                        )
+
+                    except:
+
+                        send(
+                            cid,
+                            "Usage:\n/removebalance userid amount"
+                        )
 
         except KeyboardInterrupt:
 
