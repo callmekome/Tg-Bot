@@ -17,7 +17,7 @@ BOT_USERNAME = "USDT_NEW_UPDATE_BOT"
 # REQUIRED CHANNELS/GROUPS
 REQUIRED_CHANNELS = [
     "@usdtupdate144",
-    "@discussionnewupdate"
+    "@discussionnewupdate",
     "@newupdatevip"
 ]
 
