@@ -7,7 +7,7 @@ from datetime import datetime
 
 # ================= CONFIG =================
 
-BOT_TOKEN = os.getenv("8948696166:AAFe5WloNHH70rz_4G0AXzMXh1bpGFuDSOw")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 REQUIRED_CHANNELS = [
     "@Testing13333bot",
