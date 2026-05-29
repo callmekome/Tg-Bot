@@ -7,18 +7,19 @@ from datetime import datetime
 
 # ================= CONFIG =================
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("8948696166:AAFe5WloNHH70rz_4G0AXzMXh1bpGFuDSOw")
 
 REQUIRED_CHANNELS = [
-    "@your_channel_1",
-    "@your_channel_2"
+    "@Testing13333bot",
+    "https://t.me/usdtupdate144"
+    "@Testing13333bot"
 ]
 
 JOINING_BONUS = 10.0
 REFERRAL_BONUS = 10.0
 MIN_WITHDRAWAL = 25.0
 
-BOT_USERNAME = "YourBotUsername"
+BOT_USERNAME = "USDT UPDATE"
 
 BASE = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
