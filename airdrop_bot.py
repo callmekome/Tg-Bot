@@ -11,17 +11,21 @@ BOT_NAME = "USDT NEW UPDATE"
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
+# CHANGE THIS TO YOUR REAL BOT USERNAME
 BOT_USERNAME = "USDT_NEW_UPDATE_BOT"
 
+# REQUIRED CHANNELS/GROUPS
 REQUIRED_CHANNELS = [
-    "@usdtupdate144"
+    "@usdtupdate144",
+    "@discussionnewupdate"
 ]
 
-GROUP_LINK = "https://t.me/+i3NfN9INNuplMTI0"
+GROUP_LINK = "https://t.me/discussionnewupdate"
 
+# REWARD SETTINGS
 JOINING_BONUS = 15.0
 REFERRAL_BONUS = 5.0
-MIN_WITHDRAWAL = 50.0
+MIN_WITHDRAWAL = 40.0
 
 BASE = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
@@ -50,6 +54,7 @@ def api(method, **p):
         return {}
 
 def send(cid, text, rm=None):
+
     p = {
         "chat_id": cid,
         "text": text,
@@ -62,6 +67,7 @@ def send(cid, text, rm=None):
     return api("sendMessage", **p)
 
 def edit(cid, mid, text, rm=None):
+
     p = {
         "chat_id": cid,
         "message_id": mid,
@@ -77,6 +83,7 @@ def edit(cid, mid, text, rm=None):
 # ================= KEYBOARDS =================
 
 def main_kb():
+
     return {
         "keyboard": [
             [{"text": "💳 Wallet"}, {"text": "👨‍👩‍👧 Referrals"}],
@@ -87,12 +94,14 @@ def main_kb():
     }
 
 def join_kb():
+
     buttons = []
 
     for c in REQUIRED_CHANNELS:
+
         buttons.append([
             {
-                "text": "🚀 Join Channel",
+                "text": f"🚀 Join {c}",
                 "url": "https://t.me/" + c.lstrip("@")
             }
         ])
@@ -111,11 +120,14 @@ def join_kb():
 DB = "airdrop.db"
 
 def db():
+
     c = sqlite3.connect(DB)
     c.row_factory = sqlite3.Row
+
     return c
 
 def init():
+
     c = db()
 
     c.executescript("""
@@ -149,6 +161,7 @@ def init():
     c.close()
 
 def getu(uid):
+
     c = db()
 
     r = c.execute(
@@ -161,6 +174,7 @@ def getu(uid):
     return r
 
 def mkuser(uid, un, fn, ref=None):
+
     c = db()
 
     c.execute(
@@ -186,6 +200,7 @@ def mkuser(uid, un, fn, ref=None):
     c.close()
 
 def addb(uid, amt):
+
     c = db()
 
     c.execute(
@@ -197,6 +212,7 @@ def addb(uid, amt):
     c.close()
 
 def markb(uid):
+
     c = db()
 
     c.execute(
@@ -208,6 +224,7 @@ def markb(uid):
     c.close()
 
 def refcount(uid):
+
     c = db()
 
     r = c.execute(
@@ -220,6 +237,7 @@ def refcount(uid):
     return r["n"] if r else 0
 
 def setwallet(uid, w):
+
     c = db()
 
     c.execute(
@@ -231,6 +249,7 @@ def setwallet(uid, w):
     c.close()
 
 def savewith(uid, amt, w):
+
     c = db()
 
     c.execute(
@@ -259,6 +278,7 @@ def savewith(uid, amt, w):
     c.close()
 
 def setst(uid, s):
+
     c = db()
 
     c.execute(
@@ -275,6 +295,7 @@ def setst(uid, s):
     c.close()
 
 def getst(uid):
+
     c = db()
 
     r = c.execute(
@@ -287,6 +308,7 @@ def getst(uid):
     return r["step"] if r else None
 
 def clrst(uid):
+
     c = db()
 
     c.execute(
@@ -300,10 +322,13 @@ def clrst(uid):
 # ================= MEMBERSHIP =================
 
 def check_mem(uid):
+
     out = []
 
     for c in REQUIRED_CHANNELS:
+
         try:
+
             s = api(
                 "getChatMember",
                 chat_id=c,
@@ -326,24 +351,26 @@ def do_start(cid, uid, fn, un, arg):
 
     welcome = (
         "🚀 *WELCOME TO USDT NEW UPDATE* 🚀\n\n"
-        "💎 Premium Crypto Reward Community\n"
+        "💎 Premium Crypto Reward Platform\n"
         "🔥 Earn USDT Daily\n"
-        "👥 Invite Friends & Earn More\n"
-        "⚡ Instant Reward System\n"
-        "🔒 Trusted Community Platform\n\n"
+        "👥 Invite Friends & Increase Earnings\n"
+        "⚡ Fast Reward System\n"
+        "🔒 Trusted Community\n\n"
         f"🎁 Welcome Bonus: *{JOINING_BONUS} USDT*\n"
-        f"👥 Referral Bonus: *{REFERRAL_BONUS} USDT*\n"
+        f"👥 Referral Reward: *{REFERRAL_BONUS} USDT*\n"
         f"💸 Minimum Withdrawal: *{MIN_WITHDRAWAL} USDT*\n\n"
-        "📢 Join our official updates channel below."
+        "📢 Join all required channels below to continue."
     )
 
     nj = check_mem(uid)
 
     if nj:
+
         if arg:
             pref[uid] = arg
 
         send(cid, welcome, join_kb())
+
         return
 
     do_reg(cid, uid, fn, un, arg)
@@ -357,7 +384,9 @@ def do_reg(cid, uid, fn, un, arg=None):
     ra = arg or pref.pop(uid, None)
 
     if ra:
+
         try:
+
             r = int(ra)
 
             if r != uid:
@@ -377,9 +406,11 @@ def do_reg(cid, uid, fn, un, arg=None):
         markb(uid)
 
         if ref:
+
             ru = getu(ref)
 
             if ru:
+
                 addb(ref, REFERRAL_BONUS)
 
                 send(
@@ -404,7 +435,9 @@ def do_bal(cid, uid, fn):
     u = getu(uid)
 
     if not u:
+
         send(cid, "⚠️ Please send /start first.")
+
         return
 
     send(
@@ -442,7 +475,9 @@ def do_with(cid, uid):
     u = getu(uid)
 
     if not u:
+
         send(cid, "⚠️ Please send /start first.")
+
         return
 
     b = u["balance"]
@@ -471,7 +506,9 @@ def do_with(cid, uid):
 def do_wallet(cid, uid, w):
 
     if len(w) < 20:
+
         send(cid, "❌ Invalid wallet address.")
+
         return
 
     u = getu(uid)
@@ -498,7 +535,9 @@ def do_wallet(cid, uid, w):
 def main():
 
     if not BOT_TOKEN:
+
         print("BOT_TOKEN missing")
+
         return
 
     init()
@@ -555,7 +594,7 @@ def main():
                             edit(
                                 cid,
                                 mid,
-                                "❌ You must join the channel first.",
+                                "❌ You must join all required channels first.",
                                 join_kb()
                             )
 
@@ -637,7 +676,7 @@ def main():
 
                     send(
                         cid,
-                        f"👥 Official Community Group:\n{GROUP_LINK}"
+                        "👥 Official Community Group:\nhttps://t.me/discussionnewupdate"
                     )
 
         except KeyboardInterrupt:
