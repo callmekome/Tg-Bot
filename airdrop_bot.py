@@ -18,6 +18,7 @@ BOT_USERNAME = "USDT_NEW_UPDATE_BOT"
 REQUIRED_CHANNELS = [
     "@usdtupdate144",
     "@discussionnewupdate"
+    "@newupdatevip"
 ]
 
 GROUP_LINK = "https://t.me/discussionnewupdate"
