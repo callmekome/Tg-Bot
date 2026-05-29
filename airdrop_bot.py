@@ -18,7 +18,6 @@ ADMIN_ID = 8862894177
 REQUIRED_CHANNELS = [
     "@usdtupdate144",
     "@discussionnewupdate",
-    "@humupd",
     "@AYOBOLAJI1"
 ]
 
